@@ -1,13 +1,13 @@
 # 마후봇<br>본격 씹덕의 덕질하기! 마후봇입니다!
 
 # 무슨봇인가요?
-<img src="https://user-images.githubusercontent.com/59216834/108587272-189a8300-7396-11eb-8551-949caa12dccb.jpg" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587274-19cbb000-7396-11eb-8d56-7e0eaa5a49f4.jpg" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587275-1a644680-7396-11eb-9ba0-e8d7089b85ba.jpg" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587276-1afcdd00-7396-11eb-8298-54137be05069.jpg" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587277-1b957380-7396-11eb-9bdf-2b32389a34a5.jpg" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587278-1c2e0a00-7396-11eb-891e-e1be6908b610.png" width="150"/>
-<img src="https://user-images.githubusercontent.com/59216834/108587280-1c2e0a00-7396-11eb-8a2c-fd3701303457.png" width="150"/>
+<img src="https://user-images.githubusercontent.com/59216834/108587272-189a8300-7396-11eb-8551-949caa12dccb.jpg" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587274-19cbb000-7396-11eb-8d56-7e0eaa5a49f4.jpg" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587275-1a644680-7396-11eb-9ba0-e8d7089b85ba.jpg" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587276-1afcdd00-7396-11eb-8298-54137be05069.jpg" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587277-1b957380-7396-11eb-9bdf-2b32389a34a5.jpg" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587278-1c2e0a00-7396-11eb-891e-e1be6908b610.png" width="150">
+<img src="https://user-images.githubusercontent.com/59216834/108587280-1c2e0a00-7396-11eb-8a2c-fd3701303457.png" width="150">
 해당 봇은 제작자가 만들고 싶어서 만든 카카오톡용 덕질봇입니다.<br>
 [메신저봇R](https://play.google.com/store/apps/details?id=com.xfl.msgbot)를 이용해 구현하였으며 단순하게 노래 종류를 정하고,<br>
 가사의 일부분을 보고 정답을 맞추는 봇입니다.
