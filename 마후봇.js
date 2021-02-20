@@ -3,8 +3,9 @@
 //도미님의 한글 유사도 소스: https://cafe.naver.com/nameyee/14429
 
 const scriptName = "마후봇"; // 스크립트 이름(기본: 마후봇, 꼭 자신이 만든 봇(스크립트) 이름으로 바꿔주세요.)
-const scriptPath = "/sdcard/msgbot/Bots/마후봇" // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
-const Version = "1.1";
+const scriptPath = "/sdcard/KakaotalkBot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
+const version = 1.1;
+const lw = "\u200b".repeat(501)
 const SQLite = android.database.sqlite.SQLiteDatabase;
 const cCho = [ "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
 const cJung = [ "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ" ];
@@ -16,8 +17,8 @@ let first = true;
 let config = {
     "timeout": 30000, // 타임오버 시간(단위: ms, 기본: 30초(30000ms))
     "type": "9 9", // artist vocal 순(기본: 9(미지정) 9(미지정))
-    "enableAdminFunction": false, // 관리자 기능 활성화 여부(기본: false)
-    "adminHash": null, // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
+    "enableAdminFunction": true, // 관리자 기능 활성화 여부(기본: false)
+    "adminHash": "11581421", // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
     "minimumCorrectSimilarity": 85, // 정답으로 처리할 최소 유사도(기본: 85)
     "autoUpdateDB": true, // DB 자동 업데이트(기본: true)
     "autoUpdateScript": true // 스크립트 자동 업데이트(기본: true)
@@ -32,8 +33,7 @@ let type = {"artist": { // config의 type값에 들어갈수 있는 항목
     "1": "마후마후 솔로",
     "2": "After the Rain(소라루 & 마후마후)",
     "3": "소라마후우라사카(소라루 & 마후마후 & 우라타누키 & 바보사카타)",
-    "4": "마눙짱(마후마후 여자목소리 버전)",
-    "5": "그외",
+    "4": "그외",
     "9": "미지정"
 }, "toString": () => {
     let result = []
@@ -48,85 +48,40 @@ let type = {"artist": { // config의 type값에 들어갈수 있는 항목
 }};
 
 //update script
-function checkScriptUpdate(supdate) {
+function checkScriptUpdate() {
     try {
-        //DB download
-        let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuScript/info.json").ignoreContentType(true).get().text());
-        let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuScript/마후봇.js").ignoreContentType(true).execute();
-        let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-        let out = new java.io.FileOutputStream(saveFile);
-        out.write(conn.bodyAsBytes());
-        out.close();
-        if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
-            Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
+        let a = org.jsoup.Jsoup.connect("https://github.com/bass9030/mafuBot/releases").get();
+        let ver = parseFloat(a.select("ul.d-none.d-md-block.mt-2.list-style-none").select("span.css-truncate-target").get(0).text());
+        //Log.d(ver)
+        if(version < ver) {
+            let downloadLink = "https://github.com"+a.select("a.d-flex.flex-items-center.min-width-0").attr("href");
+            let conn = org.jsoup.Jsoup.connect(downloadLink).ignoreContentType(true).execute();
+            let saveFile = new java.io.File(scriptPath + "/" + scriptName + "_tmp.js");
+            let out = new java.io.FileOutputStream(saveFile);
+            out.write(conn.bodyAsBytes());
+            out.close();
+            FileStream.remove(scriptPath + "/" + scriptName + ".js");
+            FileStream.write(scriptPath + "/" + scriptName + ".js", FileStream.read(scriptPath + "/" + scriptName + "_tmp.js"));
+            FileStream.remove(scriptPath + "/" + scriptName + "_tmp.js");
+            Api.makeNoti("스크립트 업데이트 완료", "Script ver." + ver.toFixed(1), 1127);
+            Api.reload(scriptName);
             return true;
         }else{
-            Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
             return false;
         }
     }catch(e){
         Log.e(e + " at " + e.lineNumber);
-        Api.makeNoti("DB 다운로드 실패", "DB 다운로드에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121);
+        Api.makeNoti("스크립트 업데이트 실패", "스크립트 업데이트에 실패하였습니다.", 1121);
         return false;
     }
 }
 
 //update DB
-function checkDBUpdate(supdate) {
-    if(supdate) {
-        if(!FileStream.read("/sdcard/mafumafu quiz.db")) {
-            try {
-                //DB download
-                let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
-                let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
-                let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-                let out = new java.io.FileOutputStream(saveFile);
-                out.write(conn.bodyAsBytes());
-                out.close();
-                if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
-                    Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
-                    return true;
-                }else{
-                    Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
-                    return false;
-                }
-            }catch(e){
-                Log.e(e + " at " + e.lineNumber);
-                Api.makeNoti("DB 다운로드 실패", "DB 다운로드에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121);
-                return false;
-            }
-        }else if(config.autoUpdateDB && new Date().getDay() % 7 === 0){
-            try {
-                //update DB
-                let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
-                if(info.code != 0) throw new Error(info.message);
-                if(getDBInfo().version < info.version) {
-                    let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
-                    FileStream.remove("/sdcard/mafu,afu quiz.db");
-                    let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-                    let out = new java.io.FileOutputStream(saveFile);
-                    out.write(conn.bodyAsBytes());
-                    out.close();
-                    if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
-                        Api.makeNoti("DB 업데이트 완료", "DB가 업데이트 되었습니다.\nDB Ver. " + info.version.toFixed(1), 1127);
-                        return true;
-                    }else{
-                        Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
-                        return false;
-                    }
-                }
-            }catch(e){
-                Log.e(e + " at " + e.lineNumber);
-                Api.makeNoti("DB 업데이트 실패", "DB 업데이트에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121)
-                return false;
-            }
-        }
-        return true;
-    }
-    if(!FileStream.read("/sdcard/mafumafu quiz.db")) {
-        try {
-            //DB download
-            let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
+function checkDBUpdate() {
+    try {
+        //DB download
+        let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
+        if(getDBInfo().version < info.version) {
             let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
             let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
             let out = new java.io.FileOutputStream(saveFile);
@@ -134,43 +89,17 @@ function checkDBUpdate(supdate) {
             out.close();
             if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
                 Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
-                return true;
             }else{
                 Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
                 return false;
             }
-        }catch(e){
-            Log.e(e + " at " + e.lineNumber);
-            Api.makeNoti("DB 다운로드 실패", "DB 다운로드에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121);
-            return false;
         }
-    }else if(config.autoUpdateDB && new Date().getDay() % 7 === 0){
-        try {
-            //update DB
-            let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
-            if(info.code != 0) throw new Error(info.message);
-            if(getDBInfo().version < info.version) {
-                let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
-                FileStream.remove("/sdcard/mafu,afu quiz.db");
-                let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-                let out = new java.io.FileOutputStream(saveFile);
-                out.write(conn.bodyAsBytes());
-                out.close();
-                if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
-                    Api.makeNoti("DB 업데이트 완료", "DB가 업데이트 되었습니다.\nDB Ver. " + info.version.toFixed(1), 1127);
-                    return true;
-                }else{
-                    Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
-                    return false;
-                }
-            }
-        }catch(e){
-            Log.e(e + " at " + e.lineNumber);
-            Api.makeNoti("DB 업데이트 실패", "DB 업데이트에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121)
-            return false;
-        }
+        return true;
+    }catch(e){
+        Log.e(e + " at " + e.lineNumber);
+        Api.makeNoti("DB 다운로드 실패", "DB 다운로드에 실패하였습니다.\n인터넷 연결상태를 확인하세요.", 1121);
+        return false;
     }
-    return true;
 }
 
 let db;
@@ -206,7 +135,7 @@ function getDBInfo() {
     cursor.getColumnNames().forEach((e, i) => {
         obj[e] = cursor.getString(i);
         if(e == "version") {
-            obj[e] = parseInt(obj[e])
+            obj[e] = parseFloat(obj[e])
         }
     });
     cursor.close();
@@ -296,11 +225,13 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
             if(checkDBUpdate()) {
                 db = SQLite.openDatabase("/sdcard/mafumafu quiz.db", null, SQLite.CREATE_IF_NECESSARY);
             }
+            checkScriptUpdate()
             first = false;
         }else if(new Date().getDay() % 7 === 0) {
             if(checkDBUpdate()) {
                 db = SQLite.openDatabase("/sdcard/mafumafu quiz.db", null, SQLite.CREATE_IF_NECESSARY);
             }
+            checkScriptUpdate()
         }
         if(!room_info[room]) {
             room_info[room] = {};
@@ -324,6 +255,11 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
                 room_info[room].readyDBInputfunc = setTimeout(() => (function (room, replier) { replier.reply("취소되었습니다."); room_info[room].readyDBInput = false; room_info[room].readyDBInputfunc = null; })(room, replier), 10000);
             }else if(msg == "!DB 재다운로드" && !(new Date().getTime() - selfupdate > 3600000) && !room_info[room].timeoutfunc  && !room_info[room].readyDBInputfunc) {
                 replier.reply("DB는 한번 수동으로 다운로드 후 1시간 후에 다운받을 수 있습니다.");
+            }
+
+            if(msg == "!소스 업데이트") {
+                checkScriptUpdate();
+                replier.reply("소스 업데이트가 완료되었습니다.");
             }
 
             if(msg.toLowerCase() == "y" && room_info[room].readyDBInput) {
@@ -378,7 +314,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
                 let typeArgs = msg.replace("!게임 설정 노래 종류 ", "").split(" ");
                 if(Object.keys(type.artist).indexOf(typeArgs[0]) == -1 || Object.keys(type.vocal).indexOf(typeArgs[1]) == -1) {
                     replier.reply("각 인자의 값들이 올바르지 않거나 하나가 누락되었습니다.\n\n" +
-                    "사용법:\n!게임 설정 노래 종류 <작곡가> <보컬>\n" +
+                    "사용법:\n!게임 설정 노래 종류 <작곡가> <보컬>\n자세히 보려면 전체보기를 눌러주세요." + lw + "\n" +
                     type.toString());
                     return;
                 }
@@ -414,7 +350,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
                 let info = getDBInfo();
                 let web_info = getUpdate();
                 replier.reply("DB 버전: " + info.version.toFixed(1) + 
-                "\n패치 노트: " + info.changeLog + 
+                "\n패치 노트: \n" + info.changeLog + 
                 ((getDBInfo().version < web_info.version) ? "\n신버전이 발견되었습니다. DB를 업데이트 해주세요." : ""));
             }catch(e){
                 replier.reply("DB 정보 로드에 실패했습니다.");
