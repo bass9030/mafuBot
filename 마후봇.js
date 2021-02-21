@@ -17,8 +17,8 @@ let first = true;
 let config = {
     "timeout": 30000, // 타임오버 시간(단위: ms, 기본: 30초(30000ms))
     "type": "9 9", // artist vocal 순(기본: 9(미지정) 9(미지정))
-    "enableAdminFunction": true, // 관리자 기능 활성화 여부(기본: false)
-    "adminHash": "11581421", // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
+    "enableAdminFunction": false, // 관리자 기능 활성화 여부(기본: false)
+    "adminHash": null, // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
     "minimumCorrectSimilarity": 85, // 정답으로 처리할 최소 유사도(기본: 85)
     "autoUpdateDB": true, // DB 자동 업데이트(기본: true)
     "autoUpdateScript": true // 스크립트 자동 업데이트(기본: true)
