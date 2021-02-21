@@ -81,7 +81,21 @@ function checkDBUpdate() {
     try {
         //DB download
         let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
-        if(getDBInfo().version < info.version) {
+        if(FileStream.read("/sdcard/mafumafu quiz.db")) {
+            if(getDBInfo().version < info.version) {
+                let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
+                let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
+                let out = new java.io.FileOutputStream(saveFile);
+                out.write(conn.bodyAsBytes());
+                out.close();
+                if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
+                    Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
+                }else{
+                    Api.makeNoti("DB 체크섬 확인 실패", "만일 봇이 제대로 작동하지 않는다면 DB를 수동으로 다운로드 해주세요.", 1121);
+                    return false;
+                }
+            }
+        }else{
             let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
             let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
             let out = new java.io.FileOutputStream(saveFile);
