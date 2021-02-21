@@ -4,7 +4,7 @@
 
 const scriptName = "마후봇"; // 스크립트 이름(기본: 마후봇, 꼭 자신이 만든 봇(스크립트) 이름으로 바꿔주세요.)
 const scriptPath = "/sdcard/msgbot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
-const version = 1.1;
+const version = 1.11;
 const lw = "\u200b".repeat(501);
 const SQLite = android.database.sqlite.SQLiteDatabase;
 const cCho = [ "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
@@ -63,7 +63,7 @@ function checkScriptUpdate() {
             FileStream.remove(scriptPath + "/" + scriptName + ".js");
             FileStream.write(scriptPath + "/" + scriptName + ".js", FileStream.read(scriptPath + "/" + scriptName + "_tmp.js").replace("마후봇", scriptName).replace("/sdcard/msgbot/Bots/마후봇", scriptPath));
             FileStream.remove(scriptPath + "/" + scriptName + "_tmp.js");
-            Api.makeNoti("스크립트 업데이트 완료", "Script ver." + ver.toFixed(1), 1127);
+            Api.makeNoti("스크립트 업데이트 완료", "Script ver" + ver.toFixed(1), 1127);
             Api.reload(scriptName);
             return true;
         }else{
