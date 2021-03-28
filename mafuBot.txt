@@ -4,7 +4,7 @@
 
 const scriptName = "마후봇"; // 스크립트 이름(기본: 마후봇, 꼭 자신이 만든 봇(스크립트) 이름으로 바꿔주세요.)
 const scriptPath = "/sdcard/msgbot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
-const version = 1.2;
+const version = 1.21;
 const lw = "\u200b".repeat(501);
 const SQLite = android.database.sqlite.SQLiteDatabase;
 const cCho = [ "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
@@ -326,16 +326,17 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
                 }
             }else if(args[0] + " " + args[1] == "노래 종류") {
                 let typeArgs = msg.replace("!게임 설정 노래 종류 ", "").split(" ");
-                if(Object.keys(type.artist).indexOf(typeArgs[0]) == -1 || Object.keys(type.vocal).indexOf(typeArgs[1]) == -1) {
-                    replier.reply("각 인자의 값들이 올바르지 않거나 하나가 누락되었습니다.\n\n" +
-                    "사용법:\n!게임 설정 노래 종류 <작곡가> <보컬>\n자세히 보려면 전체보기를 눌러주세요." + lw + "\n" +
-                    type.toString());
-                    return;
-                }else if(typeArgs[0] == '837982' && typeArgs[1] == '658285') {
+                if(typeArgs[0] == '837982' && typeArgs[1] == '658285') {
                     room_info[room].type = typeArgs.join(" ")
                     replier.reply("각 인자의 값들이 올바르지 않거나 하나가 누락되었습니다.\n\n" +
                     "사용법:\n!게임 설정 노래 종류 <작곡가> <보컬>\n자세히 보려면 전체보기를 눌러주세요." + lw + "\n" +
                     type.toString());
+                    return;
+                }else if(Object.keys(type.artist).indexOf(typeArgs[0]) == -1 || Object.keys(type.vocal).indexOf(typeArgs[1]) == -1) {
+                    replier.reply("각 인자의 값들이 올바르지 않거나 하나가 누락되었습니다.\n\n" +
+                    "사용법:\n!게임 설정 노래 종류 <작곡가> <보컬>\n자세히 보려면 전체보기를 눌러주세요." + lw + "\n" +
+                    type.toString());
+                    return;
                 }
                 room_info[room].type = typeArgs.join(" ")
                 replier.reply("문제 노래 종류가\n작곡: " + type.artist[typeArgs[0]] + "\n보컬: " + type.vocal[typeArgs[1]] + "\n으로 지정되었습니다.")
@@ -399,7 +400,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
             }
         }
     }catch(e){
-        replier.reply("Error: 500 Internal Server Error\n처리되지 않은 예외가 발생하였습니다. 소스를 다시 컴파일합니다.\n\n" + e + " at " + e.lineNumber + "");
+        replier.reply("Error: 500 Internal Bot Error\n처리되지 않은 예외가 발생하였습니다. 소스를 다시 컴파일합니다.\n\n" + e + " at " + e.lineNumber + "");
         Api.reload(scriptName);
     }
 }
