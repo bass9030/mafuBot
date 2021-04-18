@@ -3,7 +3,7 @@
 //도미님의 한글 유사도 소스: https://cafe.naver.com/nameyee/14429
 
 const scriptName = "마후봇"; // 스크립트 이름(기본: 마후봇, 꼭 자신이 만든 봇(스크립트) 이름으로 바꿔주세요.)
-const scriptPath = "/sdcard/msgbot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
+const scriptPath = "/sdcard/kakaotalkBot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
 const version = 1.21;
 const lw = "\u200b".repeat(501);
 const SQLite = android.database.sqlite.SQLiteDatabase;
@@ -17,8 +17,8 @@ let first = true;
 let config = {
     "timeout": 30000, // 타임오버 시간(단위: ms, 기본: 30초(30000ms))
     "type": "9 9", // artist vocal 순(기본: 9(미지정) 9(미지정))
-    "enableAdminFunction": false, // 관리자 기능 활성화 여부(기본: false)
-    "adminHash": null, // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
+    "enableAdminFunction": true, // 관리자 기능 활성화 여부(기본: false)
+    "adminHash": 8898621, // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
     "minimumCorrectSimilarity": 85, // 정답으로 처리할 최소 유사도(기본: 85)
     "autoUpdateDB": true, // DB 자동 업데이트(기본: true)
     "autoUpdateScript": true // 스크립트 자동 업데이트(기본: true)
@@ -55,13 +55,20 @@ function checkScriptUpdate() {
         //Log.d(ver)
         if(version < ver) {
             let downloadLink = "https://github.com"+a.select("a.d-flex.flex-items-center.min-width-0").attr("href");
-            let conn = org.jsoup.Jsoup.connect(downloadLink).ignoreContentType(true).execute();
-            let saveFile = new java.io.File(scriptPath + "/" + scriptName + "_tmp.js");
-            let out = new java.io.FileOutputStream(saveFile);
-            out.write(conn.bodyAsBytes());
-            out.close();
+            downloadAsFile(downloadLink, scriptPath + "/" + scriptName + "_tmp.js")
             FileStream.remove(scriptPath + "/" + scriptName + ".js");
-            FileStream.write(scriptPath + "/" + scriptName + ".js", FileStream.read(scriptPath + "/" + scriptName + "_tmp.js").replace("마후봇", scriptName).replace("/sdcard/msgbot/Bots/마후봇", scriptPath));
+            FileStream.write(scriptPath + "/" + scriptName + ".js", FileStream.read(scriptPath + "/" + scriptName + "_tmp.js")
+            .replace("마후봇", scriptName)
+            .replace("/sdcard/msgbot/Bots/마후봇", scriptPath)
+            .replace('{\n'+
+            '    "timeout": 30000, // 타임오버 시간(단위: ms, 기본: 30초(30000ms))\n'+
+            '    "type": "9 9", // artist vocal 순(기본: 9(미지정) 9(미지정))\n'+
+            '    "enableAdminFunction": false, // 관리자 기능 활성화 여부(기본: false)\n'+
+            '    "adminHash": null, // 관리자 기능 활성화시 관리자 프로필 해시(기본: null)\n'+
+            '    "minimumCorrectSimilarity": 85, // 정답으로 처리할 최소 유사도(기본: 85)\n'+
+            '    "autoUpdateDB": true, // DB 자동 업데이트(기본: true)\n'+
+            '    "autoUpdateScript": true // 스크립트 자동 업데이트(기본: true)\n'+
+            '};', JSON.stringify(config, null, 4) + ';'));
             FileStream.remove(scriptPath + "/" + scriptName + "_tmp.js");
             Api.makeNoti("스크립트 업데이트 완료", "Script ver" + ver.toFixed(2), 1127);
             Api.reload(scriptName);
@@ -76,18 +83,22 @@ function checkScriptUpdate() {
     }
 }
 
+function downloadAsFile(url, filename) {
+    let conn = org.jsoup.Jsoup.connect(url).ignoreContentType(true).execute();
+    let saveFile = new java.io.File(((filename) ? filename : '/sdcard/' + url.split('/')[url.split('/').length - 1]));
+    let out = new java.io.FileOutputStream(saveFile);
+    out.write(conn.bodyAsBytes());
+    out.close();
+}
+
 //update DB
 function checkDBUpdate() {
     try {
         //DB download
-        let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
+        let info = getServerDBInfo()
         if(FileStream.read("/sdcard/mafumafu quiz.db")) {
-            if(getDBInfo().version < info.version) {
-                let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
-                let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-                let out = new java.io.FileOutputStream(saveFile);
-                out.write(conn.bodyAsBytes());
-                out.close();
+            if(getLocalDBInfo().version < info.version) {
+                downloadAsFile('http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db');
                 if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
                     Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
                 }else{
@@ -96,11 +107,7 @@ function checkDBUpdate() {
                 }
             }
         }else{
-            let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
-            let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
-            let out = new java.io.FileOutputStream(saveFile);
-            out.write(conn.bodyAsBytes());
-            out.close();
+            downloadAsFile('http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db');
             if(info.checksum == getMD5Hash("/sdcard/mafumafu quiz.db")) { // checksum check
                 Api.makeNoti("DB 다운로드 완료", "DB 다운로드를 완료하였습니다.", 1127);
             }else{
@@ -141,7 +148,7 @@ function byteArray2Hex(hash) {
       }).join('')
 }
 
-function getDBInfo() {
+function getLocalDBInfo() {
     let _db = SQLite.openDatabase("/sdcard/mafumafu quiz.db", null, SQLite.CREATE_IF_NECESSARY);
     var obj = {};
     var cursor = _db.rawQuery("SELECT * FROM info", null);
@@ -156,7 +163,7 @@ function getDBInfo() {
     return obj;
 }
 
-function getUpdate() {
+function getServerDBInfo() {
     let result = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
     if(result.code == 0) {
         return result;
