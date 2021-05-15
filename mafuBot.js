@@ -50,7 +50,18 @@ let type = {"artist": { // config의 type값에 들어갈수 있는 항목
 //update script
 function checkScriptUpdate() {
     try {
-        let a = org.jsoup.Jsoup.connect("https://github.com/bass9030/mafuBot/releases").get();
+        let a = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafuBot.js?config=" + encodeURIComponent(JSON.stringify(config))).get();
+        let script = a.text();
+        let scriptver = getUpdate().scriptVersion;
+        if(version < scriptver) {
+            FileStream.remove(scriptPath + '/' + scriptName + '.js');
+            FileStream.write(scriptPath + '/' + scriptName + '.js', script);
+            Api.reload(scriptName);
+            return true;
+        }else{
+            return true;
+        }
+        /*let a = org.jsoup.Jsoup.connect("https://github.com/bass9030/mafuBot/releases").get();
         let ver = parseFloat(a.select("ul.d-none.d-md-block.mt-2.list-style-none").select("span.css-truncate-target").get(0).text());
         //Log.d(ver)
         if(version < ver) {
@@ -68,7 +79,7 @@ function checkScriptUpdate() {
             return true;
         }else{
             return false;
-        }
+        }*/
     }catch(e){
         Log.e(e + " at " + e.lineNumber);
         Api.makeNoti("스크립트 업데이트 실패", "스크립트 업데이트에 실패하였습니다.", 1121);
