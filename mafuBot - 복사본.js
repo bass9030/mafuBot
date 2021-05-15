@@ -3,8 +3,8 @@
 //도미님의 한글 유사도 소스: https://cafe.naver.com/nameyee/14429
 
 const scriptName = "마후봇"; // 스크립트 이름(기본: 마후봇, 꼭 자신이 만든 봇(스크립트) 이름으로 바꿔주세요.)
-const scriptPath = "/sdcard/msgbot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
-const version = 1.3;
+const scriptPath = "/sdcard/kakaotalkBot/Bots/마후봇"; // 스크립트 경로(기본: /sdcard/msgbot/Bots/마후봇, 꼭 자신이 만든 봇의 경로로 변경해주세요.)
+const version = 1.21;
 const lw = "\u200b".repeat(501);
 const SQLite = android.database.sqlite.SQLiteDatabase;
 const cCho = [ "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
@@ -16,7 +16,7 @@ let first = true;
 // ===== config / 소스 기본 설정 =====
 /*
  * timeout: 타임오버 시간(단위: ms, 기본: 30초(30000ms))
- * type: 아래에 있는 type 변수값, artist vocal 순(기본: 9(미지정) 9(미지정))
+ * type: 아래에 있는 type 변수값 참고, artist vocal 순(기본: 9(미지정) 9(미지정))
  * enableAdminFunction: 관리자 기능 활성화 여부(기본: false)
  * adminHash: 관리자 기능 활성화시 관리자 프로필 해시(기본: null)
  * minimumCorrectSimilarity: 정답으로 처리할 최소 유사도(기본: 85)
@@ -51,18 +51,36 @@ let type = {"artist": { // config의 type값에 들어갈수 있는 항목
 //update script
 function checkScriptUpdate() {
     try {
-        let a = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafuBot.js?config=" + encodeURIComponent(JSON.stringify(config)) + "&scriptName=" + encodeURIComponent(scriptName) + "&scriptSrc=" + encodeURIComponent(scriptPath)).get();
+        let a = org.jsoup.Jsoup.connect("http://172.30.1.2:3000/downloads/mafumafuDB/mafuBot.js?config=" + encodeURIComponent(JSON.stringify(config)) + "&scriptName=" + encodeURIComponent(scriptName) + "&scriptSrc=" + encodeURIComponent(scriptPath)).get();
         let script = a.text();
         let scriptver = getUpdate().scriptVersion;
         if(version < scriptver) {
             FileStream.remove(scriptPath + '/' + scriptName + '.js');
             FileStream.write(scriptPath + '/' + scriptName + '.js', script);
             Api.reload(scriptName);
-            Api.makeNoti("스크립트 업데이트 성공", "마후봇 Ver." + scriptver, 1127);
             return true;
         }else{
             return true;
         }
+        /*let a = org.jsoup.Jsoup.connect("https://github.com/bass9030/mafuBot/releases").get();
+        let ver = parseFloat(a.select("ul.d-none.d-md-block.mt-2.list-style-none").select("span.css-truncate-target").get(0).text());
+        //Log.d(ver)
+        if(version < ver) {
+            let downloadLink = "https://github.com"+a.select("a.d-flex.flex-items-center.min-width-0").attr("href");
+            let conn = org.jsoup.Jsoup.connect(downloadLink).ignoreContentType(true).execute();
+            let saveFile = new java.io.File(scriptPath + "/" + scriptName + "_tmp.js");
+            let out = new java.io.FileOutputStream(saveFile);
+            out.write(conn.bodyAsBytes());
+            out.close();
+            FileStream.remove(scriptPath + "/" + scriptName + ".js");
+            FileStream.write(scriptPath + "/" + scriptName + ".js", FileStream.read(scriptPath + "/" + scriptName + "_tmp.js").replace("마후봇", scriptName).replace("/sdcard/msgbot/Bots/마후봇", scriptPath));
+            FileStream.remove(scriptPath + "/" + scriptName + "_tmp.js");
+            Api.makeNoti("스크립트 업데이트 완료", "Script ver" + ver.toFixed(2), 1127);
+            Api.reload(scriptName);
+            return true;
+        }else{
+            return false;
+        }*/
     }catch(e){
         Log.e(e + " at " + e.lineNumber);
         Api.makeNoti("스크립트 업데이트 실패", "스크립트 업데이트에 실패하였습니다.", 1121);
@@ -74,10 +92,10 @@ function checkScriptUpdate() {
 function checkDBUpdate() {
     try {
         //DB download
-        let info = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
+        let info = JSON.parse(org.jsoup.Jsoup.connect("http://172.30.1.2:3000/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
         if(FileStream.read("/sdcard/mafumafu quiz.db")) {
             if(getDBInfo().version < info.version) {
-                let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
+                let conn = org.jsoup.Jsoup.connect("http://172.30.1.2:3000/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
                 let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
                 let out = new java.io.FileOutputStream(saveFile);
                 out.write(conn.bodyAsBytes());
@@ -90,7 +108,7 @@ function checkDBUpdate() {
                 }
             }
         }else{
-            let conn = org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
+            let conn = org.jsoup.Jsoup.connect("http://172.30.1.2:3000/downloads/mafumafuDB/mafumafu%20quiz.db").ignoreContentType(true).execute();
             let saveFile = new java.io.File("/sdcard/mafumafu quiz.db");
             let out = new java.io.FileOutputStream(saveFile);
             out.write(conn.bodyAsBytes());
@@ -151,8 +169,8 @@ function getDBInfo() {
 }
 
 function getUpdate() {
-    let result = JSON.parse(org.jsoup.Jsoup.connect("http://www.bass9030.kro.kr/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
-    if(result.status == 0) {
+    let result = JSON.parse(org.jsoup.Jsoup.connect("http://172.30.1.2:3000/downloads/mafumafuDB/info.php").ignoreContentType(true).get().text());
+    if(result.code == 0) {
         return result;
     }else{
         throw new Error(result.message);
